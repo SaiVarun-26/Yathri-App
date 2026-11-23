@@ -1,65 +1,412 @@
-# Yathri
+# 🚀 Yathri
+### Smart Travel Diary & Mobility Intelligence Platform
 
-Automatic travel diary for citizens, anonymous mobility insight for planners (SIH25082).
+> **Automatic travel diary for citizens. Anonymous mobility insights for governments.**
+>
+> Developed for **Smart India Hackathon (SIH 2025)** – Problem Statement **SIH25082**
 
-## Run
+---
 
-```
-flutter pub get
-flutter run                          # citizen app (Android)
-flutter run -t lib/admin_main.dart   # Government portal (demo data until Firebase is configured)
-```
+# 📖 Overview
 
-Without Firebase the citizen app runs fully on-device: trips are detected and stored locally and nothing is shared.
+Yathri is an intelligent travel diary that automatically detects, records and analyzes a user's daily journeys without requiring manual input.
 
-## Enable Firebase
+The application provides users with personalized travel insights, fuel consumption estimates, travel history, eco scores and commute analytics while, with explicit user consent, anonymously sharing aggregated mobility patterns with government agencies for infrastructure planning.
 
-1. `dart pub global activate flutterfire_cli`
-2. `flutterfire configure` (overwrites `lib/firebase_options.dart`)
-3. In the console enable Anonymous auth (citizens) and Email/Password (admins), create a Realtime Database.
-4. Deploy `database.rules.json`.
-5. Give an admin account the `admin` custom claim (Admin SDK: `setCustomUserClaims(uid, {admin: true})`).
+The project is designed with a **Privacy First** approach where precise user location never leaves the device.
 
-## Architecture
+---
+
+# ✨ Features
+
+## 🚶 Automatic Trip Detection
+
+- Automatic trip start & stop detection
+- Background tracking
+- Live GPS tracking
+- Automatic route generation
+- No manual interaction required
+
+---
+
+## 🚗 Transport Mode Detection
+
+Automatically detects
+
+- Walking
+- Running
+- Bicycle
+- Motorcycle / Scooter
+- Car
+- Auto
+- Bus
+- Train
+
+Uses multiple movement characteristics including
+
+- Average speed
+- Maximum speed
+- Speed consistency
+- Stop frequency
+- Acceleration
+- Braking
+- Heading changes
+- Distance travelled
+- Trip duration
+
+Low confidence predictions are displayed as
+
+> Probably Bike
+
+instead of showing incorrect classifications.
+
+Users can manually correct transport modes to improve future predictions.
+
+---
+
+## 📒 Smart Travel Diary
+
+Automatically records
+
+- Start time
+- End time
+- Distance
+- Duration
+- Route preview
+- Transport mode
+- Estimated fuel cost
+
+Trips are organized by day and can be viewed later.
+
+---
+
+## 📊 Personal Insights
+
+Automatically generates
+
+- Daily summary
+- Weekly summary
+- Monthly summary
+- Yearly summary
+
+Analytics include
+
+- Total distance
+- Total trips
+- Total travel time
+- Fuel expenditure
+- Favourite transport
+- Favourite places
+- Most active day
+- Most active hour
+- Average commute
+- Carbon footprint
+- Eco score
+
+---
+
+## ⛽ Fuel Tracking
+
+Users can configure
+
+- Vehicle type
+- Mileage (km/L)
+- Fuel price
+
+Yathri estimates
+
+- Fuel consumed
+- Trip cost
+- Daily fuel expense
+- Weekly fuel expense
+- Monthly fuel expense
+- Lifetime fuel expense
+
+---
+
+## 🏆 Rewards
+
+- XP based progression
+- Travel levels
+- Achievements
+- Monthly challenges
+- Green streaks
+- Eco goals
+
+---
+
+## 🔒 Privacy Dashboard
+
+Users can see
+
+- What data is stored
+- What data is shared
+- Upload history
+- Privacy score
+- Download personal data
+- Delete personal data
+- Enable/disable anonymous government sharing
+
+---
+
+## 🏛 Government Mobility Portal
+
+A separate administrator portal provides planners with anonymized mobility analytics.
+
+Includes
+
+- Trip heatmaps
+- Origin-Destination analysis
+- Peak hour analysis
+- Transport mode distribution
+- Mobility demand trends
+- Infrastructure planning insights
+
+No personally identifiable information is visible.
+
+---
+
+# 🏗 Architecture
+
+The application follows **Clean Architecture** with feature-first organization.
 
 ```
 lib/
-  core/            theme, widgets, geo utils, firebase bootstrap
-  features/<name>/ domain (pure Dart) · data (DTOs, sources, repositories) · services · providers · presentation
+│
+├── core/
+│   ├── theme
+│   ├── widgets
+│   ├── geo
+│   ├── firebase
+│   └── utilities
+│
+├── features/
+│   ├── auth
+│   ├── trips
+│   ├── diary
+│   ├── analytics
+│   ├── rewards
+│   ├── milestones
+│   ├── reminders
+│   ├── transparency
+│   ├── settings
+│   └── government
 ```
 
-Feature set: auth, trips (detection engine, mode classifier, foreground service), diary, analytics (cost, insights),
-rewards, milestones, reminders, alerts, transparency, settings, government (aggregation + portal).
+Each feature contains
 
-## Privacy model
+```
+Domain
+Data
+Services
+Providers
+Presentation
+```
 
-- Route and exact places: device only. Not even in the user's own cloud copy.
-- Cloud copy (`users/{uid}/trips`): zone-level only, readable by that user only.
-- Government (`gov/trips`): origin zone, destination zone, mode, distance (0.5 km), hour, duration (5 min). No user id. Opt-in, off by default.
-- Portal suppresses any group with fewer than 5 trips.
+---
 
-## Transport mode detection
+# 🛠 Tech Stack
 
-`ModeClassifier` compares nine movement measurements against a profile of each mode (walking, running, cycle,
-bike/scooter, car, auto, bus, train): typical speed, fast-end speed, top speed, stops per km, time spent stopped,
-acceleration, braking, sharp turns per km and speed steadiness. It combines them with how common each mode is and what
-the user owns, and reports a confidence. Below 60% the app says "Probably X".
+## Mobile
 
-Corrections the user makes are stored on the phone (`ModeFeedbackStore`) with the journey's measurements, and
-`ModeRefiner` uses them to adjust the guess for similar journeys when a trip is imported.
+- Flutter
+- Dart
+- Material 3
 
-The profiles are hand-set from how each mode moves, not trained on real data. Tuning them against real labelled trips
-is the main way to improve accuracy. Auto is the hardest mode to separate and is often shown as "Probably Bike / Bus / Car".
+## State Management
 
-## Product features (all computed on the phone)
+- Riverpod
 
-- Home: today's travel time, distance, fuel cost, carbon, time in traffic, eco score, and one smart insight.
-- Diary: start and destination names, route preview, cost. Naming a place renames every trip to it.
-- Insights: behaviour, money, time, environment, patterns, favourite places, monthly and yearly report (shareable picture).
-- Rewards: XP levels, green streak, goals you can edit, monthly challenges, achievements.
-- Privacy: score with reasons, stored data, upload history, download and delete my data.
-- Smart commute: learns your regular departure times; the background service sends a "running late" notification.
-- Fuel: enter mileage and fuel price; a service reminder appears after a set distance.
+## Architecture
 
-Area names use Android's geocoder with the centre of a ~1 km zone, never an exact position.
-`flutter_local_notifications` is pinned to 22.x because 23.x needs compileSdk 37, which the current Android Gradle plugin does not support.
+- Clean Architecture
+- Repository Pattern
+- Feature-first Architecture
+- Dependency Injection
+
+## Backend
+
+- Firebase Authentication
+- Firebase Realtime Database
+
+## Maps
+
+- flutter_map
+- OpenStreetMap
+
+## Location
+
+- Geolocator
+
+## Background Tracking
+
+- flutter_foreground_task
+
+## Navigation
+
+- go_router
+
+## Local Storage
+
+- JSON Storage
+- path_provider
+
+---
+
+# 📱 Running the Project
+
+## Install dependencies
+
+```bash
+flutter pub get
+```
+
+## Run Citizen Application
+
+```bash
+flutter run
+```
+
+## Run Government Portal
+
+```bash
+flutter run -t lib/admin_main.dart
+```
+
+---
+
+# 🔥 Firebase Setup
+
+1. Install FlutterFire CLI
+
+```bash
+dart pub global activate flutterfire_cli
+```
+
+2. Configure Firebase
+
+```bash
+flutterfire configure
+```
+
+This generates
+
+```
+lib/firebase_options.dart
+```
+
+3. Enable
+
+- Anonymous Authentication
+- Email & Password Authentication
+- Firebase Realtime Database
+
+4. Deploy
+
+```
+database.rules.json
+```
+
+5. Create an administrator account
+
+Assign
+
+```
+admin = true
+```
+
+using Firebase Admin SDK.
+
+---
+
+# 🔒 Privacy Model
+
+## Stored only on device
+
+- Exact route
+- GPS coordinates
+- Travel history
+- User corrections
+
+## Stored in user's cloud account
+
+- Zone level trips
+- Distance
+- Duration
+- Transport mode
+
+## Shared with Government (Only with Consent)
+
+- Origin zone
+- Destination zone
+- Mode
+- Rounded distance
+- Rounded duration
+- Hour bucket
+
+Never shared
+
+- Name
+- Phone number
+- Email
+- User ID
+- Exact coordinates
+- Route
+
+The Government Portal hides any analytics group with fewer than **5 trips** to preserve anonymity.
+
+---
+
+# 🚘 Transport Mode Detection
+
+The transport classifier uses multiple movement characteristics rather than relying only on speed.
+
+Features include
+
+- Average speed
+- Top speed
+- Speed consistency
+- Stops per kilometre
+- Time spent stationary
+- Acceleration
+- Braking
+- Heading changes
+
+User corrections are stored locally and reused to improve predictions for similar future trips.
+
+---
+
+# 📈 Future Improvements
+
+- Machine Learning based transport classification
+- Real-time traffic prediction
+- Route recommendation
+- Crowd density estimation
+- Public transport integration
+- Weather-aware travel insights
+- Multi-device synchronization
+- Offline map support
+
+---
+
+# 🎯 Smart India Hackathon
+
+**Problem Statement**
+
+**SIH25082**
+
+Theme
+
+**Smart Mobility & Urban Infrastructure**
+
+---
+
+# 👥 Team
+
+**TechTactix**
+
+---
+
+# 📄 License
+
+This project was developed as part of the **Smart India Hackathon (SIH)** and is intended for academic and demonstration purposes.
