@@ -1,0 +1,43 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "trips": {
+          "$tripId": {
+            ".validate": "newData.hasChildren(['start', 'end', 'mode', 'distanceM', 'originZone', 'destinationZone'])",
+            "route": { ".validate": false }
+          }
+        }
+      }
+    },
+
+    "gov": {
+      "trips": {
+        ".read": "auth != null && auth.token.admin === true",
+        ".indexOn": ["hour"],
+        "$id": {
+          ".write": "auth != null && !data.exists()",
+          ".validate": "newData.hasChildren(['originZone', 'destinationZone', 'mode', 'distanceKm', 'hour', 'durationMin'])",
+          "originZone": { ".validate": "newData.isString() && newData.val().matches(/^-?[0-9]+_-?[0-9]+$/)" },
+          "destinationZone": { ".validate": "newData.isString() && newData.val().matches(/^-?[0-9]+_-?[0-9]+$/)" },
+          "mode": { ".validate": "newData.isString() && newData.val().matches(/^(walking|running|cycling|bike|car|bus|metro|train|auto|taxi|unknown)$/)" },
+          "distanceKm": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 5000" },
+          "hour": { ".validate": "newData.isNumber()" },
+          "durationMin": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "$other": { ".validate": false }
+        }
+      }
+    },
+
+    "alerts": {
+      ".read": "auth != null",
+      ".indexOn": ["issuedAt"],
+      ".write": "auth != null && auth.token.admin === true"
+    }
+  }
+}
